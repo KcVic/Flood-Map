@@ -16,95 +16,113 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
     <title>Abuja Flood Risk | Interactive Map</title>
 </head>
-<body class="bg-light d-flex flex-column">
-    <!--Top-->
-    <div class="position-absolute top-0 start-0 w-100 p-3 p-md-4 z-top pe-none d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 gap-md-0">
-        
-        <!-- Header Card -->
-        <div class="glass-card px-3 py-2 px-md-4 py-md-3 rounded-4 d-flex align-items-center gap-3 pe-auto shadow-sm me-auto me-md-0" style="max-width: max-content;">
-            <div class="bg-primary rounded-pill w-indicator"></div>
-            <div>
-                <h1 class="fs-6 fw-bold text-dark mb-0">ABUJA FLOOD RISK MAP</h1>
-                <p class="text-xxs text-secondary fw-semibold text-uppercase mb-0 mt-1">Predictive Analysis</p>
+<body class="d-flex">
+
+    <!-- Sidebar -->
+    <nav id="sidebar" class="sidebar d-flex flex-column flex-shrink-0 position-fixed">
+        <button class="toggle-btn" id="sidebarToggle" type="button" aria-controls="sidebar" aria-expanded="true" aria-label="Toggle sidebar">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+
+        <div class="p-4 pb-3">
+            <h4 class="logo-text fw-bold mb-0">Abuja Flood Map</h4>
+            <p class="text-muted small hide-on-collapse mb-0">Predictive Analysis</p>
+        </div>
+
+        <!-- Methodology Abstract Card -->
+        <div class="sidebar-scroll flex-grow-1">
+            <i class="fas fa-file-lines collapsed-icon" title="Methodology Abstract"></i>
+
+            <div class="abstract-card hide-on-collapse">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="fas fa-file-lines abstract-icon"></i>
+                    <h2 class="text-xs fw-bold text-uppercase text-white mb-0" style="letter-spacing: 0.1em;">Methodology Abstract</h2>
+                </div>
+                <div class="text-xs lh-lg abstract-text">
+                    <p class="mb-2">
+                        This map identifies high-risk flood zones within <span class="text-white fw-bold">Abuja</span>. Data is derived using the Height Above Nearest Drainage (HAND) technique to mormalise topography based on the vertical distance of any point to its nearest drainage channel.
+                    </p>
+                    <p class="mb-0">
+                        Variables include <span class="fw-semibold text-white">Digital Elevation Model of Abuja, Stream and River Drainage Network, and Flow Direction. </span>Regions covered in a blue hue represent zones with which lie below 2m of river or stream channels and as such are most vulnerable to flooding.
+                    </p>
+                </div>
             </div>
         </div>
 
-        <!-- Layer Switcher -->
-        <div class="glass-card px-2 py-1 px-md-3 py-md-2 rounded-4 pe-auto shadow-sm d-flex gap-1 gap-md-2" style="width: fit-content; margin-top: 0.5rem;">
-            <button class="btn btn-sm btn-primary layer-toggle active" data-layer="google" style="font-size: 0.75rem; padding: 0.35rem 0.75rem;">Google Hybrid</button>
-            <button class="btn btn-sm btn-outline-primary layer-toggle" data-layer="osm" style="font-size: 0.75rem; padding: 0.35rem 0.75rem;">OpenStreetMap</button>
+        <div class="profile-section mt-auto p-4">
+            <div class="d-flex align-items-center">
+                <img src="assets/images/GIS Acheivers Logo.jpg" style="height:60px; width:60px; object-fit:cover;" class="rounded-circle flex-shrink-0" alt="GIS Achievers Logo">
+                <div class="ms-3 profile-info">
+                    <h6 class="text-white mb-0">Kenechukwu Akoma</h6>
+                    <small class="text-muted">GIS Achievers</small>
+                </div>
+            </div>
         </div>
+    </nav>
 
-        <!-- Search Bar -->
-        <div class="glass-card rounded-pill p-2 d-flex align-items-center pe-auto shadow-sm w-100" style="max-width: 320px;">
-            <svg class="icon-sm text-secondary ms-2 me-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-            </svg>
-            <input type="text" id="searchInput" class="form-control border-0 bg-transparent shadow-none px-1 text-sm" placeholder="Search location (e.g., Lugbe)..." style="font-size: 0.85rem;">
-            <button id="searchBtn" class="btn btn-primary rounded-circle p-0 ms-1 d-flex align-items-center justify-content-center" type="button" style="width: 32px; height: 32px; flex-shrink: 0;">
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                </svg>
-            </button>
-        </div>
-        
-    </div>
-    <div id="map" class="flex-grow-1 w-100">
-         <!-- My Location Button -->
-        <div class="position-absolute z-top locate-button-container" style="bottom: 20px; left: 54px;">
-            <button id="locateBtn" class="btn btn-light bg-white p-0 d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; border: 2px solid rgba(0,0,0,0.2); border-radius: 4px; color: #444;" title="Find My Location">
-                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="7"></circle>
-                    <line x1="12" y1="1" x2="12" y2="5"></line>
-                    <line x1="12" y1="19" x2="12" y2="23"></line>
-                    <line x1="1" y1="12" x2="5" y2="12"></line>
-                    <line x1="19" y1="12" x2="23" y2="12"></line>
-                </svg>
-            </button>
-        </div>
-        <!--Methodology Abstract Card-->
-        <div class="position-absolute bottom-0 end-0 p-2 p-md-4 mb-2 mb-md-3 z-top pe-none methodology-container">
-            <div class="glass-card p-3 p-md-4 rounded-4 pe-auto shadow-sm mb-4 mb-md-0 methodology-card">
-                <div class="d-flex align-items-center justify-content-between mb-2 mb-md-3">
-                    <div class="d-flex align-items-center gap-1 gap-md-2">
-                        <svg class="icon-sm icon-sm-mobile text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        <h2 class="text-xs fw-bold text-uppercase text-dark mb-0 methodology-title" style="letter-spacing: 0.1em;">Methodology Abstract</h2>
-                    </div>
-                    
-                    <!-- Mobile Read More Toggle -->
-                    <button class="btn btn-sm btn-outline-primary d-md-none p-1 px-2 text-xxs" type="button" data-bs-toggle="collapse" data-bs-target="#abstractCollapse" aria-expanded="false" aria-controls="abstractCollapse" id="readMoreBtn">
-                        Read More
+    <!-- Backdrop: only active on small screens while the sidebar is expanded -->
+    <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
+
+    <div class="main-content">
+        <div class="map-area">
+
+            <!--Top overlay controls-->
+            <div class="map-overlay-top p-3 p-md-4 z-top pe-none d-flex flex-column flex-md-row justify-content-md-between align-items-md-start gap-3 gap-md-0">
+
+                <!-- Layer Switcher -->
+                <div class="glass-card px-2 py-1 px-md-3 py-md-2 rounded-4 pe-auto shadow-sm d-flex gap-1 gap-md-2" style="width: fit-content;">
+                    <button class="btn btn-sm btn-primary layer-toggle active" data-layer="google" style="font-size: 0.75rem; padding: 0.35rem 0.75rem;">Google Hybrid</button>
+                    <button class="btn btn-sm btn-outline-primary layer-toggle" data-layer="osm" style="font-size: 0.75rem; padding: 0.35rem 0.75rem;">OpenStreetMap</button>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="glass-card rounded-pill p-2 d-flex align-items-center pe-auto shadow-sm w-100" style="max-width: 320px;">
+                    <svg class="icon-sm text-secondary ms-2 me-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <input type="text" id="searchInput" class="form-control border-0 bg-transparent shadow-none px-1 text-sm" placeholder="Search location (e.g., Lugbe)..." style="font-size: 0.85rem;">
+                    <button id="searchBtn" class="btn btn-primary rounded-circle p-0 ms-1 d-flex align-items-center justify-content-center" type="button" style="width: 32px; height: 32px; flex-shrink: 0;">
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
                     </button>
                 </div>
-                <div class="collapse d-md-block" id="abstractCollapse">
-                    <div class="text-xs text-secondary lh-lg mt-2 mt-md-0 methodology-text">
-                        <p class="mb-2">
-                            This map identifies high-risk flood zones within <span class="text-dark fw-bold">Abuja</span>. Data is derived using the Height Above Nearest Drainage (HAND) technique to mormalise topography based on the vertical distance of any point to its nearest drainage channel.
-                        </p>
-                        <p class="mb-0">
-                            Variables include <span class="fw-semibold text-dark">Digital Elevation Model of Abuja, Stream and River Drainage Network, and Flow Direction. </span>Regions covered in a blue hue represent zones with which lie below 2m of river or stream channels and as such are most vulnerable to flooding.
-                        </p>
-                    </div>
+
+            </div>
+
+            <div id="map"></div>
+        </div>
+
+        <!--Footer-->
+        <footer class="footer-section bg-white border-top px-3 px-md-4 w-100 shadow-sm">
+            <div class="d-flex flex-column flex-md-row justify-content-md-between align-items-start align-items-md-center w-100">
+                <!-- GIS Achievers Logo -->
+                <div class="footer-logo-container d-flex align-items-center gap-2">
+                    <img src="assets/images/GIS Acheivers Logo.jpg" alt="GIS Achievers Logo" class="img-fluid" style="max-width: 80px; max-height: 80px;">
+                    <span class="fw-bold text-dark text-uppercase" style="font-size: 0.85rem; letter-spacing: 0.05em;">GIS Achievers</span>
+                </div>
+
+                <!-- Copyright Text (Always visible now) -->
+                <div class="text-secondary text-xxs fw-semibold text-start text-md-end">
+                    &copy; 2026. All rights reserved. | Developed by Kenechukwu Akoma.
                 </div>
             </div>
-        </div>
+        </footer>
     </div>
-    
-    <!--Footer-->
-    <footer class="footer-section bg-white border-top px-3 px-md-4 w-100 shadow-sm">
-        <div class="d-flex flex-column flex-md-row justify-content-md-between align-items-start align-items-md-center w-100">
-            <!-- GIS Achievers Logo -->
-            <div class="footer-logo-container d-flex align-items-center gap-2">
-                <img src="assets/images/GIS Acheivers Logo.jpg" alt="GIS Achievers Logo" class="img-fluid" style="max-width: 80px; max-height: 80px;">
-                <span class="fw-bold text-dark text-uppercase" style="font-size: 0.85rem; letter-spacing: 0.05em;">GIS Achievers</span>
-            </div>
-            
-            <!-- Copyright Text (Always visible now) -->
-            <div class="text-secondary text-xxs fw-semibold text-start text-md-end">
-                &copy; 2026. All rights reserved. | Developed by Kenechukwu Akoma.
-            </div>
-        </div>
-    </footer>
+
+    <!-- Find My Location button: map.js moves this into a Leaflet bottom-left control so it stacks above the zoom control -->
+    <div id="locateBtnHolder" hidden>
+        <button id="locateBtn" class="btn btn-light bg-white p-0 d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; border: 2px solid rgba(0,0,0,0.2); border-radius: 4px; color: #444;" title="Find My Location">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="7"></circle>
+                <line x1="12" y1="1" x2="12" y2="5"></line>
+                <line x1="12" y1="19" x2="12" y2="23"></line>
+                <line x1="1" y1="12" x2="5" y2="12"></line>
+                <line x1="19" y1="12" x2="23" y2="12"></line>
+            </svg>
+        </button>
+    </div>
+
     <script src="qgis2web/js/qgis2web_expressions.js"></script>
     <script src="qgis2web/js/leaflet.js"></script>
     <script src="qgis2web/js/L.Control.Layers.Tree.min.js"></script>
@@ -117,6 +135,6 @@
     <script src="qgis2web/js/labels.js"></script>
     <script src="qgis2web/js/leaflet.photon.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="assets/js/map.js"></script>        
+    <script src="assets/js/map.js"></script>
 </body>
 </html>

@@ -70,6 +70,18 @@ function addClassToPopupIfMedia(content, popup) {
 var zoomControl = L.control.zoom({
     position: 'bottomleft'
 }).addTo(map);
+
+// Find My Location control. Leaflet prepends into bottom corners, so adding this
+// after the zoom control stacks it directly above the zoom buttons — no overlap.
+var locateControl = L.control({position: 'bottomleft'});
+locateControl.onAdd = function () {
+    var container = L.DomUtil.create('div', 'leaflet-control locate-control');
+    container.appendChild(document.getElementById('locateBtn'));
+    L.DomEvent.disableClickPropagation(container);
+    L.DomEvent.disableScrollPropagation(container);
+    return container;
+};
+locateControl.addTo(map);
 var bounds_group = new L.featureGroup([]);
 map.createPane('pane_GoogleHybrid_0');
 map.getPane('pane_GoogleHybrid_0').style.zIndex = 400;
@@ -239,3 +251,37 @@ L.ImageOverlay.include({
         return this._bounds;
     }
 });
+
+// Sidebar collapse / expand
+const sidebar = document.getElementById('sidebar');
+const sidebarToggle = document.getElementById('sidebarToggle');
+const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+
+function setSidebar(collapsed) {
+    sidebar.classList.toggle('collapsed', collapsed);
+    sidebarToggle.setAttribute('aria-expanded', String(!collapsed));
+}
+
+sidebarToggle.addEventListener('click', function () {
+    setSidebar(!sidebar.classList.contains('collapsed'));
+});
+
+// Tapping the backdrop closes the drawer on small screens
+sidebarBackdrop.addEventListener('click', function () {
+    setSidebar(true);
+});
+
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !sidebar.classList.contains('collapsed') && window.innerWidth < 992) {
+        setSidebar(true);
+    }
+});
+
+// Keep Leaflet in sync once the width transition finishes
+sidebar.addEventListener('transitionend', function (e) {
+    if (e.propertyName === 'width') {
+        map.invalidateSize();
+    }
+});
+
+sidebarToggle.setAttribute('aria-expanded', String(!sidebar.classList.contains('collapsed')));

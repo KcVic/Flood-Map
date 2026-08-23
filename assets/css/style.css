@@ -1,3 +1,8 @@
+:root {
+    --sidebar-width: 280px;
+    --sidebar-width-collapsed: 80px;
+}
+
 html, body {
     width: 100%;
     height: 100%;
@@ -7,15 +12,193 @@ html, body {
 }
 
 body {
+    overflow-x: hidden;
+}
+
+/* ------------------------------------------------------------------ */
+/* Sidebar                                                             */
+/* ------------------------------------------------------------------ */
+
+.sidebar {
+    width: var(--sidebar-width);
+    height: 100vh;
+    top: 0;
+    left: 0;
+    background: linear-gradient(135deg, #1a1c2e 0%, #16181f 100%);
+    transition: all 0.3s ease;
+    /* Above the footer (z-index: 1000) and every Leaflet control */
+    z-index: 1200;
+    overflow: visible;
+}
+
+.sidebar.collapsed {
+    width: var(--sidebar-width-collapsed);
+}
+
+/* Bootstrap's .text-muted is too dark against the sidebar gradient */
+.sidebar .text-muted {
+    color: #a0a3bd !important;
+}
+
+.logo-text {
+    background: linear-gradient(45deg, #6b8cff, #8b9fff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transition: opacity 0.3s ease;
+    white-space: nowrap;
+}
+
+.sidebar-scroll {
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
+}
+
+/* Methodology abstract card (replaces the nav links) */
+.abstract-card {
+    color: #a0a3bd;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    margin: 4px 16px 16px;
+    padding: 1rem;
+    width: calc(var(--sidebar-width) - 32px);
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.abstract-icon {
+    color: #6b8cff;
+    font-size: 0.9rem;
+}
+
+.abstract-text {
+    color: #a0a3bd;
+}
+
+/* Stand-in shown on the collapsed rail */
+.collapsed-icon {
+    display: none;
+    color: #a0a3bd;
+    font-size: 1.1rem;
+    text-align: center;
+    padding: 1rem 0;
+}
+
+.sidebar.collapsed .collapsed-icon {
+    display: block;
+}
+
+.profile-section {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.profile-info {
+    transition: opacity 0.2s ease;
+    white-space: nowrap;
+}
+
+.toggle-btn {
+    position: absolute;
+    right: -15px;
+    top: 20px;
+    background: white;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.sidebar.collapsed .toggle-btn {
+    transform: rotate(180deg);
+}
+
+.sidebar.collapsed .hide-on-collapse {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.sidebar.collapsed .logo-text,
+.sidebar.collapsed .profile-info {
+    opacity: 0;
+    visibility: hidden;
+}
+
+/* Collapsed rail: centre the avatar and drop the name/role */
+.sidebar.collapsed .p-4 {
+    padding: 0.75rem !important;
+}
+
+.sidebar.collapsed .profile-section {
+    padding: 0.75rem 0.5rem !important;
+}
+
+.sidebar.collapsed .profile-section .d-flex {
+    justify-content: center;
+}
+
+.sidebar.collapsed .profile-section img {
+    height: 36px !important;
+    width: 36px !important;
+}
+
+.sidebar.collapsed .profile-info {
+    display: none;
+}
+
+.sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 1150;
+}
+
+/* ------------------------------------------------------------------ */
+/* Main content: map + footer, pushed clear of the sidebar             */
+/* ------------------------------------------------------------------ */
+
+.main-content {
+    margin-left: var(--sidebar-width);
+    background-color: #f8f9fa;
+    height: 100vh;
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+}
+
+.collapsed ~ .main-content {
+    margin-left: var(--sidebar-width-collapsed);
+}
+
+.map-area {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
     display: flex;
     flex-direction: column;
 }
 
-#map { 
+#map {
     flex: 1;
-    width: 100%; 
+    width: 100%;
     position: relative;
     min-height: 0;
+}
+
+.map-area .map-overlay-top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    /* Clears the sidebar toggle button, which overhangs the map edge */
+    padding-left: 2.25rem !important;
 }
 
 .footer-section {
@@ -34,12 +217,16 @@ body {
     .footer-section {
         min-height: 100px;
     }
-    
+
     .footer-logo-container {
         margin-bottom: 0;
         margin-right: 2rem;
     }
-}   
+}
+
+/* ------------------------------------------------------------------ */
+/* Shared utilities                                                    */
+/* ------------------------------------------------------------------ */
 
 .glass-card {
     background: rgba(255, 255, 255, 0.85);
@@ -49,11 +236,11 @@ body {
 }
 
 .z-top {
-    z-index: 1000; 
+    z-index: 1000;
 }
 .w-indicator {
     width: 0.5rem;
-    height: 2rem; 
+    height: 2rem;
 }
 .dot {
     width: 0.5rem;
@@ -71,38 +258,6 @@ body {
     height: 1.25rem;
 }
 
-.methodology-container {
-    max-width: 380px;
-    width: 100%;
-    bottom: calc(100px + 1rem);
-    z-index: 1001;
-}
-
-@media (max-width: 767.98px) {
-    .methodology-container {
-        max-width: 75vw;
-        bottom: calc(120px + 1rem);
-    }
-    .methodology-card {
-    padding: 0.75rem !important;
-    }
-    .methodology-text {
-        font-size: 0.65rem !important;
-        line-height: 1.4 !important;
-    }
-    .methodology-title {
-        font-size: 0.65rem !important;
-        letter-spacing: 0.05em !important;
-    }
-    .methodology-legend {
-        font-size: 0.55rem !important;
-    }
-    .icon-sm-mobile {
-        width: 1rem;
-        height: 1rem;
-    }
-}
-
 /* Layer Switcher */
 .layer-toggle {
     transition: all 0.3s ease;
@@ -114,24 +269,68 @@ body {
     transform: translateY(-2px);
 }
 
+/* ------------------------------------------------------------------ */
+/* Leaflet controls: locate stacks above zoom, bottom-left of the map  */
+/* ------------------------------------------------------------------ */
+
+.locate-control {
+    /* Leaflet's corner stacking supplies the spacing; matched to the zoom control */
+    margin-bottom: 10px !important;
+    line-height: 0;
+}
+
+/* ------------------------------------------------------------------ */
+/* Small screens: the sidebar becomes an overlay drawer over the map   */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 991.98px) {
+    :root {
+        --sidebar-width: min(85vw, 280px);
+        --sidebar-width-collapsed: 56px;
+    }
+
+    /* The map keeps the rail's width only, so expanding never squeezes it */
+    .main-content,
+    .collapsed ~ .main-content {
+        margin-left: var(--sidebar-width-collapsed);
+    }
+
+    .sidebar:not(.collapsed) ~ .sidebar-backdrop {
+        display: block;
+    }
+
+    .sidebar .p-4 {
+        padding: 1rem !important;
+    }
+
+    .abstract-card {
+        margin: 4px 12px 12px;
+        width: calc(var(--sidebar-width) - 24px);
+        font-size: 0.7rem;
+    }
+
+    .profile-section img {
+        height: 40px !important;
+        width: 40px !important;
+    }
+}
+
 @media (max-width: 767.98px) {
+    .map-area .map-overlay-top {
+        padding-left: 1.75rem !important;
+    }
+
     .layer-toggle {
         font-size: 0.65rem !important;
         padding: 0.25rem 0.5rem !important;
     }
-    
-    /* Leaflet controls - reposition on mobile */
-    .leaflet-bottom {
-        bottom: 140px;
-    }
-    
+
     .leaflet-attribution-flag {
         display: none !important;
     }
-    
+
     .leaflet-attribution {
         font-size: 0.7rem !important;
         padding: 4px 8px !important;
     }
-    
 }
