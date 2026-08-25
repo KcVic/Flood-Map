@@ -85,10 +85,16 @@ locateControl.addTo(map);
 var bounds_group = new L.featureGroup([]);
 map.createPane('pane_GoogleHybrid_0');
 map.getPane('pane_GoogleHybrid_0').style.zIndex = 400;
-var layer_GoogleHybrid_0 = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+var MAPTILER_KEY = 'oaJeDXhObRAHvJsE1TH7';
+var MAPTILER_ATTRIBUTION = '<a href="https://www.maptiler.com/copyright/" target="_blank">© MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap contributors</a>';
+
+var layer_GoogleHybrid_0 = L.tileLayer('https://api.maptiler.com/maps/hybrid-v4/{z}/{x}/{y}.jpg?key=' + MAPTILER_KEY, {
     pane: 'pane_GoogleHybrid_0',
     opacity: 1.0,
-    attribution: '<a href="https://www.google.at/permissions/geoguidelines/attr-guide.html">Map data ©2015 Google</a>',
+    attribution: MAPTILER_ATTRIBUTION,
+    tileSize: 512,
+    zoomOffset: -1,
+    crossOrigin: true,
     minZoom: 1,
     maxZoom: 28,
     minNativeZoom: 0,
@@ -97,10 +103,15 @@ var layer_GoogleHybrid_0 = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y
 map.addLayer(layer_GoogleHybrid_0);
 
 // Add OpenStreetMap tile layer
-var layer_OSM_0 = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+var layer_OSM_0 = L.tileLayer('https://api.maptiler.com/maps/openstreetmap/{z}/{x}/{y}.jpg?key=' + MAPTILER_KEY, {
+    attribution: MAPTILER_ATTRIBUTION,
+    tileSize: 512,
+    zoomOffset: -1,
+    crossOrigin: true,
     minZoom: 1,
-    maxZoom: 28
+    maxZoom: 28,
+    minNativeZoom: 0,
+    maxNativeZoom: 20
 });
 map.createPane('pane_PotentialFloodZones_1');
 map.getPane('pane_PotentialFloodZones_1').style.zIndex = 401;
