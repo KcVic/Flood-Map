@@ -4,23 +4,8 @@
 // Thresholds are GloFAS-convention return periods — watch = 2-year flood, warning = 5-year,
 // critical = 20-year — from a Gumbel fit to the annual maxima of the 1997–2024 GloFAS
 // reanalysis for each hotspot's grid cell. Hotspots sharing a 0.05° cell share thresholds.
-const FLOOD_GAUGES = [
-    { id: 'wuse2', name: 'Wuse 2 - Adetokunbo Ademola Crescent', lat: 9.0765, lng: 7.4837, context: 'Cars submerged, businesses closed (Aug 15 flood)', thresholds: { watch: 4.68, warning: 6.93, critical: 9.85 } },
-    { id: 'gudu', name: 'Gudu - Delight Event Centre / Ebeano-Gudu Rd', lat: 9.0270, lng: 7.4610, context: 'Heavy rainfall triggered flash flooding on 15th August 2026', thresholds: { watch: 7.23, warning: 10.42, critical: 14.55 } },
-    { id: 'lokogoma', name: 'Lokogoma - Efab Estate / iPent Estate', lat: 8.9850, lng: 7.4550, context: 'Chronic flood zone, flagged by FEMA as flood-prone', thresholds: { watch: 2.0, warning: 2.82, critical: 3.87 } },
-    { id: 'gaduwa-durumi', name: 'Gaduwa-Durumi Bridge', lat: 9.0120, lng: 7.4460, context: 'Bridge fully submerged, cut off movement on August 15, 2026', thresholds: { watch: 13.24, warning: 19.28, critical: 27.1 } },
-    { id: 'lugbe', name: 'Lugbe - Trademore Estate', lat: 8.9750, lng: 7.3650, context: 'Worst-hit residential estate historically (2024–2026)', thresholds: { watch: 15.35, warning: 21.79, critical: 30.14 } },
-    { id: 'kubwa', name: 'Kubwa', lat: 9.1583, lng: 7.3319, context: 'FEMA flood alert tied to Usuma Dam spillover', thresholds: { watch: 20.98, warning: 32.75, critical: 48.02 } },
-    { id: 'katampe', name: 'Katampe', lat: 9.1050, lng: 7.4550, context: 'Flooded Aug 15, previously considered safe high ground', thresholds: { watch: 2.27, warning: 3.47, critical: 5.03 } },
-    { id: 'mabushi', name: 'Mabushi', lat: 9.0850, lng: 7.4450, context: 'Flooded roads; FEMA visited as known flood-prone community', thresholds: { watch: 30.95, warning: 45.44, critical: 64.25 } },
-    { id: 'gwarinpa', name: 'Gwarinpa', lat: 9.1100, lng: 7.4100, context: 'Roads submerged, commuters stranded', thresholds: { watch: 6.27, warning: 9.45, critical: 13.58 } },
-    { id: 'asokoro', name: 'Asokoro', lat: 9.0430, lng: 7.5330, context: 'First flooding in recent history reported here (Aug 2026)', thresholds: { watch: 10.47, warning: 15.15, critical: 21.23 } },
-    { id: 'maitama', name: 'Maitama', lat: 9.0850, lng: 7.4950, context: 'Flooded Aug 15, part of city-centre flooding', thresholds: { watch: 4.68, warning: 6.93, critical: 9.85 } },
-    { id: 'utako', name: 'Utako', lat: 9.0700, lng: 7.4400, context: 'Waterlogged roads, traffic chaos', thresholds: { watch: 30.95, warning: 45.44, critical: 64.25 } },
-    { id: 'wuye', name: 'Wuye', lat: 9.0600, lng: 7.4700, context: 'Flooded alongside Wuse/Gudu cluster', thresholds: { watch: 4.68, warning: 6.93, critical: 9.85 } },
-    { id: 'galadimawa', name: 'Galadimawa', lat: 8.9950, lng: 7.4200, context: 'Long-standing flood-prone community per FCT Emergency Management', thresholds: { watch: 9.57, warning: 13.65, critical: 18.93 } },
-    { id: 'nyanya', name: 'Nyanya', lat: 9.0350, lng: 7.5450, context: 'Repeated flooding in the same event cluster', thresholds: { watch: 10.47, warning: 15.15, critical: 21.23 } }
-];
+let FLOOD_GAUGES = [];
+
 
 const RISK_LEVELS = ['normal', 'watch', 'warning', 'critical'];
 
@@ -158,6 +143,7 @@ function addGaugeMarker(gauge, daily, risk) {
         <hr class="my-2">
         <canvas id="chart-${gauge.id}" width="250" height="120"></canvas>
         <p class="small mt-2 mb-0">
+            The graph shows the daily river discharge rate in m³/s.<br>
             Current: ${baseline.toFixed(2)} m³/s<br>
             Peak forecast: <strong>${peak.toFixed(2)} m³/s</strong>
             <span class="text-muted">(${risePct >= 0 ? '+' : ''}${risePct.toFixed(0)}%)</span><br>
@@ -220,6 +206,7 @@ floodLegend.addTo(map);
 
 async function initFloodLayer() {
     try {
+        FLOOD_GAUGES = await fetch('data/flood-gauges.json').then(r => r.json());
         const results = await fetchAllGaugeData();
         const assessed = results.map(({ gauge, daily }) => ({
             gauge,
