@@ -334,3 +334,30 @@ body {
         padding: 4px 8px !important;
     }
 }
+
+/* ── Flood Raster Dynamic Styling ── */
+.leaflet-pane.flood-normal img {
+    opacity: 0.25 !important;
+    filter: saturate(0.6) brightness(1.4);
+    transition: opacity 0.8s ease, filter 0.8s ease;
+}
+.leaflet-pane.flood-watch img {
+    opacity: 0.4 !important;
+    filter: hue-rotate(40deg) saturate(2) brightness(1.3);
+    transition: opacity 0.8s ease, filter 0.8s ease;
+}
+.leaflet-pane.flood-warning img {
+    opacity: 0.6 !important;
+    filter: hue-rotate(20deg) saturate(3) brightness(1.1);
+    transition: opacity 0.8s ease, filter 0.8s ease;
+}
+.leaflet-pane.flood-critical img {
+    opacity: 0.85 !important;
+    filter: hue-rotate(-10deg) saturate(4) brightness(0.9);
+    animation: pulse-flood 2s ease-in-out infinite;
+    transition: filter 0.8s ease;
+}
+@keyframes pulse-flood {
+    0%, 100% { opacity: 0.85; }
+    50%      { opacity: 0.55; }
+}
