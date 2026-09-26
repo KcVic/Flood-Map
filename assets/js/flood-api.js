@@ -83,11 +83,6 @@ function getRiskLevel(dailyData, thresholds) {
 }
 
 // ── Localised raster pulse ──
-// The HAND raster is a single image spanning the whole region, so styling its pane would
-// pulse all of Abuja at once. Instead the base image is masked to fade out around each
-// elevated gauge, and a copy masked to exactly those areas is pulsed on top — so only the
-// flood zones near a surging river breathe. The masks are expressed as fractions of the
-// image, which has fixed geographic bounds, so they hold through zoom and pan.
 const PULSE_RADIUS_KM = 5;
 const PULSE_PANE = 'pane_FloodPulse';
 
@@ -96,9 +91,6 @@ map.getPane(PULSE_PANE).style.zIndex = 402;
 
 let pulseOverlays = [];
 
-// Where a gauge sits within the raster image, and how big the pulse halo is, both as
-// percentages of the image. The image has fixed geographic bounds, so these hold through
-// zoom and pan and the masks never need recomputing on map movement.
 function gaugeHalo(gauge) {
     const [[south, west], [north, east]] = img_bounds_PotentialFloodZones_1;
     const lonKm = (east - west) * 111.320 * Math.cos((south + north) / 2 * Math.PI / 180);
@@ -111,8 +103,6 @@ function gaugeHalo(gauge) {
     };
 }
 
-// `hole` fades the image out over a gauge, `spot` is its exact complement. Applying one to
-// the base and the other to the copy means the two always add back up to the whole image.
 function haloGradient(gauge, kind) {
     const { fx, fy, rx, ry } = gaugeHalo(gauge);
     const stops = kind === 'hole' ? 'transparent 55%, #000 100%' : '#000 55%, transparent 100%';

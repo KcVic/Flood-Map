@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://abujafloodmap.online/</loc>
+    <lastmod>2026-09-26</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://abujafloodmap.online/assets/images/Abuja%20Flood%20Map-Mockup.png</image:loc>
+      <image:title>Abuja Flood Map — interactive flood risk map</image:title>
+    </image:image>
+  </url>
+</urlset>

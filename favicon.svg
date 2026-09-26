@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-labelledby="t">
+  <title id="t">Abuja Flood Map</title>
+  <rect width="32" height="32" rx="7" fill="#1a1c2e"/>
+  <!-- Chimney: the asymmetry stops the roof reading as an upward arrow -->
+  <rect x="19.8" y="5.6" width="2.7" height="5.2" fill="#eef2ff"/>
+  <!-- House: a steep pitch and only a small overhang, so the peak survives rasterisation
+       at 16px instead of rounding off into a dome -->
+  <path d="M16 3.8 25.6 13.6h-2.2V25.5H8.6V13.6H6.4z" fill="#eef2ff"/>
+  <!-- Two filled water masses. Solid shapes with a wavy top edge stay legible at 16px,
+       where stroked wave lines would thin out to nothing. -->
+  <path d="M0 17.6q4-3.4 8 0t8 0 8 0 8 0V32H0z" fill="#6eb9ff" opacity=".92"/>
+  <path d="M0 22.4q4-3.4 8 0t8 0 8 0 8 0V32H0z" fill="#1d6fd0"/>
+</svg>
