@@ -1,5 +1,8 @@
+﻿# Ignore python virtual environments
 .venv/
 venv/
 __pycache__/
+
+# Ignore Claude Code hidden folders
 .claude/
 claude/
