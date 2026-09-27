@@ -76,6 +76,8 @@ map.getPane(PULSE_PANE).style.zIndex = 402;
 
 let pulseOverlays = [];
 
+const floodZoneLayer = L.layerGroup([layer_PotentialFloodZones_1]).addTo(map);
+
 function gaugeHalo(gauge) {
     const [[south, west], [north, east]] = img_bounds_PotentialFloodZones_1;
     const lonKm = (east - west) * 111.320 * Math.cos((south + north) / 2 * Math.PI / 180);
@@ -103,7 +105,7 @@ function updateRasterStyle(assessed) {
     const elevated = assessed.filter(a => a.risk !== 'normal');
     const baseImg = layer_PotentialFloodZones_1.getElement();
 
-    pulseOverlays.forEach(overlay => map.removeLayer(overlay));
+    pulseOverlays.forEach(overlay => floodZoneLayer.removeLayer(overlay));
     pulseOverlays = [];
 
     if (!elevated.length) {
@@ -118,17 +120,36 @@ function updateRasterStyle(assessed) {
         const overlay = new L.ImageOverlay(img_PotentialFloodZones_1, img_bounds_PotentialFloodZones_1, {
             pane: PULSE_PANE,
             className: `flood-pulse flood-${level}`
-        }).addTo(map);
+        }).addTo(floodZoneLayer);
         const spots = elevated.filter(a => a.risk === level).map(a => haloGradient(a.gauge, 'spot'));
         applyMask(overlay.getElement(), spots.join(', '), 'add');
         pulseOverlays.push(overlay);
     });
 }
 
-// Fifteen markers at desktop size crowd a phone screen, so they shrink below 768px and
-// follow the breakpoint afterwards, which covers rotating the device.
 const SMALL_SCREEN = window.matchMedia('(max-width: 767.98px)');
 const gaugeMarkers = [];
+
+// All 15 markers in one group so the layers control switches them together
+const gaugeLayer = L.layerGroup().addTo(map);
+
+const GAUGE_PANE = 'pane_Gauges';
+const GAUGE_MIN_ZOOM = 12;
+
+map.createPane(GAUGE_PANE);
+map.getPane(GAUGE_PANE).style.zIndex = 560;
+
+function updateGaugeVisibility() {
+    const visible = map.getZoom() >= GAUGE_MIN_ZOOM;
+    map.getPane(GAUGE_PANE).style.display = visible ? '' : 'none';
+    // A popup left open over hidden markers would float unattached
+    if (!visible) {
+        gaugeMarkers.forEach(marker => marker.closePopup());
+    }
+}
+
+map.on('zoomend', updateGaugeVisibility);
+updateGaugeVisibility();
 
 function markerStyle() {
     return SMALL_SCREEN.matches ? { radius: 7, weight: 1.5 } : { radius: 12, weight: 2 };
@@ -145,12 +166,13 @@ function addGaugeMarker(gauge, daily, risk) {
     const { radius, weight } = markerStyle();
 
     const marker = L.circleMarker([gauge.lat, gauge.lng], {
+        pane: GAUGE_PANE,
         radius: radius,
         color: '#fff',
         weight: weight,
         fillColor: RISK_COLORS[risk],
         fillOpacity: 0.9
-    }).addTo(map);
+    }).addTo(gaugeLayer);
     gaugeMarkers.push(marker);
 
     marker.bindPopup(`
@@ -219,6 +241,31 @@ floodLegend.onAdd = function () {
     return container;
 };
 floodLegend.addTo(map);
+
+
+const layersControl = L.control.layers(null, {
+    'Flood risk zones': floodZoneLayer,
+    'River gauges': gaugeLayer
+}, { position: 'bottomright' }).addTo(map);
+
+(function clickToToggle(control) {
+    const container = control.getContainer();
+    const link = container.querySelector('.leaflet-control-layers-toggle');
+
+    L.DomEvent.off(container, 'mouseenter', control._expandSafely, control);
+    L.DomEvent.off(container, 'mouseleave', control.collapse, control);
+
+    L.DomEvent.off(link, 'click');
+
+    L.DomEvent.on(link, 'click', function (e) {
+        L.DomEvent.stop(e);
+        if (container.classList.contains('leaflet-control-layers-expanded')) {
+            control.collapse();
+        } else {
+            control.expand();
+        }
+    });
+})(layersControl);
 
 async function initFloodLayer() {
     try {
