@@ -98,23 +98,35 @@ body {
     white-space: nowrap;
 }
 
+/* Lives outside the sidebar, so it is positioned against the viewport and follows the
+   sidebar's edge rather than riding off-screen with it */
 .toggle-btn {
-    position: absolute;
-    right: -15px;
+    position: fixed;
     top: 20px;
+    left: calc(var(--sidebar-width) - 15px);
     background: white;
     border-radius: 50%;
     width: 30px;
     height: 30px;
     border: none;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    z-index: 100;
+    /* Above the sidebar itself (1200) so it stays clickable while the drawer is open */
+    z-index: 1250;
     cursor: pointer;
-    transition: transform 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: left 0.3s ease, transform 0.3s ease;
 }
 
-.sidebar.collapsed .toggle-btn {
+#sidebar.collapsed ~ .toggle-btn {
+    left: calc(var(--sidebar-width-collapsed) - 15px);
     transform: rotate(180deg);
+}
+
+/* The hamburger only stands in for the chevron on mobile */
+.toggle-btn .icon-menu {
+    display: none;
 }
 
 .sidebar.collapsed .hide-on-collapse {
@@ -286,13 +298,53 @@ body {
 @media (max-width: 991.98px) {
     :root {
         --sidebar-width: min(85vw, 280px);
-        --sidebar-width-collapsed: 56px;
+        --footer-height: 100px;
     }
 
-    /* The map keeps the rail's width only, so expanding never squeezes it */
+    /* A true off-canvas drawer: no rail is left behind, so the map gets the full width */
     .main-content,
     .collapsed ~ .main-content {
-        margin-left: var(--sidebar-width-collapsed);
+        margin-left: 0;
+    }
+
+    /* dvh keeps the drawer clear of the footer even as mobile browser chrome shows and
+       hides, which plain vh does not account for */
+    .main-content {
+        height: 100dvh;
+    }
+
+    .sidebar {
+        height: calc(100vh - var(--footer-height));
+        height: calc(100dvh - var(--footer-height));
+    }
+
+    .sidebar.collapsed {
+        width: var(--sidebar-width);
+        transform: translateX(-100%);
+    }
+
+    /* Nothing sits on a rail any more, and the profile is the first thing to go */
+    .sidebar.collapsed .collapsed-icon,
+    .profile-section {
+        display: none;
+    }
+
+    #sidebar.collapsed ~ .toggle-btn {
+        left: 12px;
+        transform: none;
+    }
+
+    #sidebar.collapsed ~ .toggle-btn .icon-collapse {
+        display: none;
+    }
+
+    #sidebar.collapsed ~ .toggle-btn .icon-menu {
+        display: inline;
+    }
+
+    /* Clears the hamburger, which now floats over the map at the top left */
+    .map-area .map-overlay-top {
+        padding-left: 3.5rem !important;
     }
 
     .sidebar:not(.collapsed) ~ .sidebar-backdrop {
@@ -308,16 +360,11 @@ body {
         width: calc(var(--sidebar-width) - 24px);
         font-size: 0.7rem;
     }
-
-    .profile-section img {
-        height: 40px !important;
-        width: 40px !important;
-    }
 }
 
 @media (max-width: 767.98px) {
-    .map-area .map-overlay-top {
-        padding-left: 1.75rem !important;
+    :root {
+        --footer-height: 72px;
     }
 
     .layer-toggle {
@@ -332,6 +379,50 @@ body {
     .leaflet-attribution {
         font-size: 0.7rem !important;
         padding: 4px 8px !important;
+    }
+
+    /* Typography: several of these override inline styles in index.html, hence !important */
+    .logo-text {
+        font-size: 1.15rem !important;
+    }
+
+    .abstract-card {
+        font-size: 0.65rem;
+        padding: 0.75rem;
+    }
+
+    .text-xs {
+        font-size: 0.68rem;
+    }
+
+    .text-xxs {
+        font-size: 0.58rem !important;
+    }
+
+    #floodStatusBadge {
+        font-size: 0.7rem !important;
+    }
+
+    #floodStatusDetail {
+        font-size: 0.62rem !important;
+    }
+
+    /* Footer: trimmed so it stops eating the map on small screens */
+    .footer-section {
+        min-height: var(--footer-height);
+    }
+
+    .footer-logo-container {
+        margin-bottom: 0.25rem;
+    }
+
+    .footer-logo-container img {
+        max-width: 44px !important;
+        max-height: 44px !important;
+    }
+
+    .footer-logo-container span {
+        font-size: 0.7rem !important;
     }
 }
 

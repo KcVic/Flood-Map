@@ -238,10 +238,6 @@
 
     <!-- Sidebar -->
     <nav id="sidebar" class="sidebar d-flex flex-column flex-shrink-0 position-fixed">
-        <button class="toggle-btn" id="sidebarToggle" type="button" aria-controls="sidebar" aria-expanded="true" aria-label="Toggle sidebar">
-            <i class="fas fa-chevron-left"></i>
-        </button>
-
         <div class="p-4 pb-3">
             <h4 class="logo-text fw-bold mb-0">Abuja Flood Map</h4>
             <p class="text-muted small hide-on-collapse mb-0">Predictive Analysis</p>
@@ -293,6 +289,13 @@
         </div>
     </nav>
 
+    <!-- Sits outside the sidebar so it stays on screen once the sidebar slides off-canvas
+         on mobile, where it becomes the hamburger that opens the drawer -->
+    <button class="toggle-btn" id="sidebarToggle" type="button" aria-controls="sidebar" aria-expanded="true" aria-label="Toggle sidebar">
+        <i class="fas fa-chevron-left icon-collapse"></i>
+        <i class="fas fa-bars icon-menu"></i>
+    </button>
+
     <!-- Backdrop: only active on small screens while the sidebar is expanded -->
     <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
 
@@ -305,7 +308,7 @@
                 <!-- Layer Switcher -->
                 <div class="glass-card px-2 py-1 px-md-3 py-md-2 rounded-4 pe-auto shadow-sm d-flex gap-1 gap-md-2" style="width: fit-content;">
                     <button class="btn btn-sm btn-primary layer-toggle active" data-layer="google" style="font-size: 0.75rem; padding: 0.35rem 0.75rem;">Google Hybrid</button>
-                    <button class="btn btn-sm btn-outline-primary layer-toggle" data-layer="osm" style="font-size: 0.75rem; padding: 0.35rem 0.75rem;">OpenStreetMap</button>
+                    <button class="btn btn-sm btn-outline-primary layer-toggle" data-layer="openstreet" style="font-size: 0.75rem; padding: 0.35rem 0.75rem;">OpenStreet</button>
                 </div>
 
                 <!-- Search Bar -->
@@ -368,6 +371,7 @@
     <script src="qgis2web/js/labels.js"></script>
     <script src="qgis2web/js/leaflet.photon.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/config.js"></script>
     <script src="assets/js/map.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="assets/js/flood-api.js"></script>

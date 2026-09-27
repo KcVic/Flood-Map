@@ -71,8 +71,7 @@ var zoomControl = L.control.zoom({
     position: 'bottomleft'
 }).addTo(map);
 
-// Find My Location control. Leaflet prepends into bottom corners, so adding this
-// after the zoom control stacks it directly above the zoom buttons — no overlap.
+
 var locateControl = L.control({position: 'bottomleft'});
 locateControl.onAdd = function () {
     var container = L.DomUtil.create('div', 'leaflet-control locate-control');
@@ -85,7 +84,7 @@ locateControl.addTo(map);
 var bounds_group = new L.featureGroup([]);
 map.createPane('pane_GoogleHybrid_0');
 map.getPane('pane_GoogleHybrid_0').style.zIndex = 400;
-var MAPTILER_KEY = 'oaJeDXhObRAHvJsE1TH7';
+var MAPTILER_KEY = CONFIG.MAPTILER_KEY;
 var MAPTILER_ATTRIBUTION = '<a href="https://www.maptiler.com/copyright/" target="_blank">© MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap contributors</a>';
 
 var layer_GoogleHybrid_0 = L.tileLayer('https://api.maptiler.com/maps/hybrid-v4/{z}/{x}/{y}.jpg?key=' + MAPTILER_KEY, {
@@ -100,10 +99,9 @@ var layer_GoogleHybrid_0 = L.tileLayer('https://api.maptiler.com/maps/hybrid-v4/
     minNativeZoom: 0,
     maxNativeZoom: 20
 });
-map.addLayer(layer_GoogleHybrid_0);
 
-// Add OpenStreetMap tile layer
-var layer_OSM_0 = L.tileLayer('https://api.maptiler.com/maps/openstreetmap/{z}/{x}/{y}.jpg?key=' + MAPTILER_KEY, {
+
+var layer_Openstreet_0 = L.tileLayer('https://api.maptiler.com/maps/openstreetmap/{z}/{x}/{y}.png?key=' + MAPTILER_KEY, {
     attribution: MAPTILER_ATTRIBUTION,
     tileSize: 512,
     zoomOffset: -1,
@@ -113,6 +111,7 @@ var layer_OSM_0 = L.tileLayer('https://api.maptiler.com/maps/openstreetmap/{z}/{
     minNativeZoom: 0,
     maxNativeZoom: 20
 });
+map.addLayer(layer_GoogleHybrid_0);
 map.createPane('pane_PotentialFloodZones_1');
 map.getPane('pane_PotentialFloodZones_1').style.zIndex = 401;
 var img_PotentialFloodZones_1 = 'qgis2web/data/PotentialFloodZones_1.png';
@@ -248,11 +247,11 @@ layerToggles.forEach(button => {
         
         // Switch layers
         if (layer === 'google') {
-            map.removeLayer(layer_OSM_0);
+            map.removeLayer(layer_Openstreet_0);
             map.addLayer(layer_GoogleHybrid_0);
-        } else if (layer === 'osm') {
+        } else if (layer === 'openstreet') {
             map.removeLayer(layer_GoogleHybrid_0);
-            map.addLayer(layer_OSM_0);
+            map.addLayer(layer_Openstreet_0);
         }
     });
 });
@@ -295,4 +294,9 @@ sidebar.addEventListener('transitionend', function (e) {
     }
 });
 
-sidebarToggle.setAttribute('aria-expanded', String(!sidebar.classList.contains('collapsed')));
+// Start closed on small screens so the map opens with the whole viewport to itself
+if (window.matchMedia('(max-width: 991.98px)').matches) {
+    setSidebar(true);
+} else {
+    sidebarToggle.setAttribute('aria-expanded', String(!sidebar.classList.contains('collapsed')));
+}

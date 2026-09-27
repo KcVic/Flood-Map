@@ -125,17 +125,33 @@ function updateRasterStyle(assessed) {
     });
 }
 
+// Fifteen markers at desktop size crowd a phone screen, so they shrink below 768px and
+// follow the breakpoint afterwards, which covers rotating the device.
+const SMALL_SCREEN = window.matchMedia('(max-width: 767.98px)');
+const gaugeMarkers = [];
+
+function markerStyle() {
+    return SMALL_SCREEN.matches ? { radius: 7, weight: 1.5 } : { radius: 12, weight: 2 };
+}
+
+SMALL_SCREEN.addEventListener('change', function () {
+    const { radius, weight } = markerStyle();
+    gaugeMarkers.forEach(marker => marker.setRadius(radius).setStyle({ weight }));
+});
+
 function addGaugeMarker(gauge, daily, risk) {
     const { peak, baseline, surgeFactor } = surgeStats(daily.river_discharge);
     const risePct = (surgeFactor - 1) * 100;
+    const { radius, weight } = markerStyle();
 
     const marker = L.circleMarker([gauge.lat, gauge.lng], {
-        radius: 12,
+        radius: radius,
         color: '#fff',
-        weight: 2,
+        weight: weight,
         fillColor: RISK_COLORS[risk],
         fillOpacity: 0.9
     }).addTo(map);
+    gaugeMarkers.push(marker);
 
     marker.bindPopup(`
         <h6 class="mb-1">${gauge.name}</h6>
