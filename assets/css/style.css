@@ -270,6 +270,37 @@ body {
     height: 1.25rem;
 }
 
+/* Search bar + Google Maps link dropdown */
+.search-submit:hover,
+.search-submit:focus-visible {
+    color: var(--bs-primary) !important;
+}
+
+.link-toggle svg {
+    transition: transform 0.2s ease;
+}
+
+/* Arrow points down while the link box is open */
+.link-toggle[aria-expanded="true"] svg {
+    transform: rotate(90deg);
+}
+
+.link-panel {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+}
+
+.link-hint {
+    font-size: 0.7rem;
+    line-height: 1.4;
+}
+
+.link-hint.is-error {
+    color: var(--bs-danger) !important;
+}
+
 /* Layer Switcher */
 .layer-toggle {
     transition: all 0.3s ease;

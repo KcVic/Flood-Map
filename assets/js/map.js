@@ -123,74 +123,212 @@ bounds_group.addLayer(layer_PotentialFloodZones_1);
 map.addLayer(layer_PotentialFloodZones_1);
 
 
-// Use OpenStreetMap's free Nominatim API for geocoding
+// Location search
+// The main box searches place names with the MapTiler Geocoding API (same key as the tiles).
+// The arrow opens a second box for Google Maps links, which gmaps-url.js reads locally with no API call.
 const searchInput = document.getElementById('searchInput');
 const searchBtn = document.getElementById('searchBtn');
+const linkToggle = document.getElementById('linkToggle');
+const linkPanel = document.getElementById('linkPanel');
+const linkInput = document.getElementById('linkInput');
+const linkBtn = document.getElementById('linkBtn');
+const linkHint = document.getElementById('linkHint');
+
+const DEFAULT_PLACEHOLDER = searchInput.placeholder;
+const DEFAULT_LINK_HINT = linkHint.textContent;
+const ABUJA_CENTRE = [7.4951, 9.0579];   // lng, lat: biases MapTiler results towards Abuja
+let placeholderTimer = null;
+let searchInFlight = false;
 let searchMarker = null;
 
-async function performSearch() {
-    const query = searchInput.value.trim();
-    if (!query) return;
-    
-    // Use Nominatim (free, no API key needed)
-    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query + ', Abuja, Nigeria')}&format=json&limit=1`;
+// Show a short message in the empty search box, then put the normal hint back
+function flashPlaceholder(message, ms) {
+    searchInput.value = '';
+    searchInput.placeholder = message;
+    clearTimeout(placeholderTimer);
+    placeholderTimer = setTimeout(() => {
+        searchInput.placeholder = DEFAULT_PLACEHOLDER;
+    }, ms || 2500);
+}
 
-    try {
-        // Visual feedback during search
-        const originalPlaceholder = searchInput.placeholder;
-        searchInput.placeholder = "Searching...";
-        const searchedQuery = searchInput.value;
-        searchInput.value = "";
+function setLinkHint(message, isError) {
+    linkHint.textContent = message || DEFAULT_LINK_HINT;
+    linkHint.classList.toggle('is-error', !!isError);
+}
 
-        const response = await fetch(url);
-        const data = await response.json();
-
-        if (data && data.length > 0) {
-            const lat = parseFloat(data[0].lat);
-            const lon = parseFloat(data[0].lon);
-
-            // Fly to the new location
-            map.flyTo([lat, lon], 15, {
-                duration: 1.5
-            });
-
-            // Remove previous marker if it exists
-            if (searchMarker) {
-                map.removeLayer(searchMarker);
-            }
-
-            // Add a new marker at the searched location
-            searchMarker = L.marker([lat, lon]).addTo(map);
-            
-            // Restore input with searched query
-            searchInput.value = searchedQuery;
-            searchInput.placeholder = originalPlaceholder;
-        } else {
-            // Handle not found
-            searchInput.value = "";
-            searchInput.placeholder = "Location not found...";
-            setTimeout(() => {
-                searchInput.placeholder = originalPlaceholder;
-            }, 2000);
-        }
-    } catch (error) {
-        console.error('Search error:', error);
-        searchInput.value = "";
-        searchInput.placeholder = "Error connecting...";
-        setTimeout(() => {
-            const originalPlaceholder = "Search location (e.g., Lugbe)...";
-            searchInput.placeholder = originalPlaceholder;
-        }, 2000);
+function setLinkPanel(open) {
+    linkPanel.hidden = !open;
+    linkToggle.setAttribute('aria-expanded', String(open));
+    if (open) {
+        setLinkHint();
+        linkInput.focus();
     }
 }
 
-// Trigger search on button click
-searchBtn.addEventListener('click', performSearch);
+// result: { lat, lng, zoom?, bounds?, label?, inputText? }
+function showSearchResult(result) {
+    if (result.bounds) {
+        map.flyToBounds(result.bounds, { maxZoom: 16, duration: 1.5 });
+    } else {
+        map.flyTo([result.lat, result.lng], result.zoom || 16, { duration: 1.5 });
+    }
 
-// Trigger search on Enter key press
-searchInput.addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') {
-        performSearch();
+    if (searchMarker) {
+        map.removeLayer(searchMarker);
+    }
+    searchMarker = L.marker([result.lat, result.lng]).addTo(map);
+
+    const coordsText = `${result.lat.toFixed(5)}, ${result.lng.toFixed(5)}`;
+    const tooltip = document.createElement('span');
+    tooltip.textContent = result.label || coordsText;   // textContent: names from pasted links are untrusted
+    searchMarker.bindTooltip(tooltip, { direction: 'top', offset: [-15, -28] });
+
+    clearTimeout(placeholderTimer);
+    searchInput.placeholder = DEFAULT_PLACEHOLDER;
+    searchInput.value = result.inputText || result.label || coordsText;
+}
+
+// MapTiler Geocoding. Typed searches are kept to Nigeria and biased towards Abuja; names taken
+// from a Google Maps link are searched without limits, since the link may point anywhere.
+// Returns { lat, lng, bounds, label } or null.
+async function geocode(query, scopeToAbuja) {
+    const params = new URLSearchParams({ key: MAPTILER_KEY, limit: '1', language: 'en' });
+    if (scopeToAbuja) {
+        params.set('country', 'ng');
+        params.set('proximity', ABUJA_CENTRE.join(','));
+    }
+    // ';' separates batch queries in the MapTiler API, so keep it out of a single search
+    const path = encodeURIComponent(query.replace(/;/g, ' '));
+    const response = await fetch(`https://api.maptiler.com/geocoding/${path}.json?${params}`);
+    if (!response.ok) throw new Error(`MapTiler geocoding returned ${response.status}`);
+
+    const feature = (await response.json()).features[0];
+    if (!feature) return null;
+
+    const [lng, lat] = feature.center;
+    const b = feature.bbox;   // [west, south, east, north]; a single point for addresses and POIs
+    const hasArea = b && (b[0] !== b[2] || b[1] !== b[3]);
+    return {
+        lat: lat,
+        lng: lng,
+        bounds: hasArea ? [[b[1], b[0]], [b[3], b[2]]] : null,
+        label: feature.place_name || feature.text || query
+    };
+}
+
+async function performSearch() {
+    const input = searchInput.value.trim();
+    if (!input || searchInFlight) return;
+
+    const parsed = parseSearchInput(input);
+    const isLink = /^https?:|google\.|goo\.gl/i.test(input);
+
+    // Typed "lat, lng" goes straight there
+    if (parsed && !isLink) {
+        showSearchResult(parsed);
+        return;
+    }
+    // A link pasted into the main box is handed to the link box, which explains any problem with it
+    if (parsed) {
+        searchInput.value = '';
+        linkInput.value = input;
+        setLinkPanel(true);
+        handleLink();
+        return;
+    }
+
+    searchInFlight = true;
+    clearTimeout(placeholderTimer);
+    searchInput.value = '';
+    searchInput.placeholder = 'Searching...';
+    try {
+        const hit = await geocode(input, true);
+        if (hit) {
+            hit.inputText = input;
+            showSearchResult(hit);
+        } else {
+            flashPlaceholder('Location not found...');
+        }
+    } catch (error) {
+        console.error('Search error:', error);
+        flashPlaceholder('Error connecting...');
+    } finally {
+        searchInFlight = false;
+    }
+}
+
+async function handleLink() {
+    const text = linkInput.value.trim();
+    if (!text || searchInFlight) return;
+
+    const parsed = parseSearchInput(text);
+    if (!parsed) {
+        setLinkHint("That doesn't look like a Google Maps link.", true);
+        return;
+    }
+    if (parsed.kind === 'shortlink') {
+        setLinkHint("Short links (maps.app.goo.gl) can't be read. Open the link, then copy the full address from your browser.", true);
+        return;
+    }
+    if (parsed.kind === 'unsupported') {
+        setLinkHint("Couldn't find a location in that link.", true);
+        return;
+    }
+
+    let result = parsed;
+    if (parsed.kind === 'query') {
+        // The link only names a place, so look the name up
+        searchInFlight = true;
+        setLinkHint('Searching...');
+        try {
+            result = await geocode(parsed.query, false);
+        } catch (error) {
+            console.error('Link search error:', error);
+            setLinkHint('Error connecting. Please try again.', true);
+            return;
+        } finally {
+            searchInFlight = false;
+        }
+        if (!result) {
+            setLinkHint(`Couldn't find "${parsed.query}".`, true);
+            return;
+        }
+        result.inputText = parsed.label;
+    }
+
+    showSearchResult(result);
+    linkInput.value = '';
+    setLinkPanel(false);
+}
+
+searchBtn.addEventListener('click', performSearch);
+searchInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') performSearch();
+});
+
+linkToggle.addEventListener('click', function () {
+    setLinkPanel(linkPanel.hidden);
+});
+linkBtn.addEventListener('click', handleLink);
+linkInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') handleLink();
+    if (e.key === 'Escape') {
+        setLinkPanel(false);
+        linkToggle.focus();
+    }
+});
+// Pasting a link goes straight there
+linkInput.addEventListener('paste', function () {
+    setTimeout(handleLink, 0);   // let the pasted text land in the box first
+});
+linkInput.addEventListener('input', function () {
+    if (linkHint.classList.contains('is-error')) setLinkHint();
+});
+
+// Clicking anywhere outside the search area closes the link box
+document.addEventListener('click', function (e) {
+    if (!linkPanel.hidden && !e.target.closest('.search-wrap')) {
+        setLinkPanel(false);
     }
 });
 
@@ -220,12 +358,7 @@ map.on('locationfound', function(e) {
 
 // Event fired if location access fails or is denied
 map.on('locationerror', function(e) {
-    const originalPlaceholder = searchInput.placeholder;
-    searchInput.value = "";
-    searchInput.placeholder = "Location access denied/failed...";
-    setTimeout(() => {
-        searchInput.placeholder = originalPlaceholder;
-    }, 3000);
+    flashPlaceholder('Location access denied/failed...', 3000);
     console.error("Location error:", e.message);
 });
 

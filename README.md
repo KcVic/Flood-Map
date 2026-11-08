@@ -15,7 +15,7 @@ The project combines two systems:
 - **Dynamic Raster Pulsing**: The static HAND inundation map breathes/pulses visually in a 5km halo around any gauge where the river is surging — other areas of the map stay calm
 - **Hybrid Surge Detection**: Flags locations using both absolute historical thresholds AND relative rate-of-change (a sudden 2.5× or 4× spike in discharge)
 - **Dual Base Map Layers**: Toggle between Google Hybrid (satellite imagery) and OpenStreetMap layers
-- **Location Search**: Search for any location in Abuja and instantly navigate to it with Nominatim geocoding (powered by OpenStreetMap)
+- **Location Search**: Search for any location in Abuja and instantly navigate to it with MapTiler geocoding. The arrow beside the search bar opens a box for pasting a full Google Maps link; the coordinates are read straight from the link, with no API call
 - **My Location Feature**: Automatically locate your current position and place a marker on the map
 - **Responsive Design**: Fully optimized for desktop, tablet, and mobile devices
 - **Bootstrap-Powered UI**: Built with Bootstrap 5 for clean, modern styling with glass-morphism effects
@@ -40,8 +40,7 @@ The project combines two systems:
 
 ### APIs
 - **Open-Meteo Flood API** — Live 7-day GloFAS river discharge forecasts (free, no key required)
-- **OpenStreetMap Nominatim API** — Free geocoding service (no key required)
-- **MapTiler API** — Satellite and street tile layers (free tier, key required)
+- **MapTiler API** — Satellite and street tile layers, plus place search (free tier, key required)
 - **Browser Geolocation API** — Native "Find My Location" feature
 
 ### Data Sources
@@ -345,6 +344,7 @@ mapping-projects/
 │   ├── js/
 │   │   ├── config.js               # MapTiler API key (domain-restricted)
 │   │   ├── config.example.js       # Template for contributors to create their own config
+│   │   ├── gmaps-url.js            # Reads coordinates from pasted Google Maps links
 │   │   ├── map.js                  # Leaflet map init, layer toggles, search, geolocation
 │   │   └── flood-api.js            # Live discharge engine: fetch, surge calc, markers, pulsing
 │   └── images/                     # Logos, mockups, profile images
@@ -397,14 +397,8 @@ mapping-projects/
 - **Grid Resolution**: 0.05° (~5km)
 - **Documentation**: [open-meteo.com/en/docs/flood-api](https://open-meteo.com/en/docs/flood-api)
 
-### Nominatim Geocoding API
-- **Endpoint**: `https://nominatim.openstreetmap.org/search`
-- **Usage**: Search for locations by name
-- **Rate Limits**: 1 request per second recommended
-- **No API Key Required**: Free and open-source
-
 ### MapTiler
-- **Usage**: Satellite hybrid and OpenStreetMap tile layers
+- **Usage**: Satellite hybrid and OpenStreetMap tile layers, and place search through the Geocoding API (`https://api.maptiler.com/geocoding/{query}.json`), limited to Nigeria and biased towards Abuja
 - **API Key Required**: Free tier available at [maptiler.com](https://www.maptiler.com/cloud/)
 - **Security**: Keys should be restricted to your domain in the MapTiler dashboard
 
@@ -456,7 +450,7 @@ Please read our [**Contributing Guide**](CONTRIBUTING.md) for detailed instructi
 - [WhiteboxTools User Manual](https://www.whiteboxgeo.com/manual/wbt_book/intro.html)
 - [Open-Meteo Flood API](https://open-meteo.com/en/docs/flood-api)
 - [qgis2web GitHub](https://github.com/tomchadwin/qgis2web)
-- [Nominatim API](https://nominatim.org/release-docs/latest/api/Overview/)
+- [MapTiler Geocoding API](https://docs.maptiler.com/cloud/api/geocoding/)
 - [Bootstrap 5 Documentation](https://getbootstrap.com/docs/5.3/)
 
 ---
